@@ -29,37 +29,38 @@ class BookingService(seatAssignmentStrategy: SeatAssignmentStrategy, showDAO: Sh
   }
 
   def changeSeats(tempBookingId: String, seatStartLoc: String): Booking = {
-    val tempBooking: Booking = findTempBooking(tempBookingId).getOrElse(throw new RuntimeException(s"No temp-booking found for booking id: ${tempBookingId}"))
-    val auditoriumId = tempBooking.show.auditoriumId
-    val lock = auditoriumDAO.getOrCreateLock(auditoriumId)
-    lock.acquire()
-    try {
+    withAuditoriumLock(tempBookingId, tempBooking => {
+      val auditoriumId = tempBooking.show.auditoriumId
       val layoutCache = auditoriumDAO.getSeatLayoutCache(auditoriumId).getOrElse(throw new RuntimeException(s"No seat layout found for auditorium id: ${auditoriumId}"))
       val seatIndex = seatUtil.getSeatIndexFromString(seatStartLoc)
       val selectedSeat = seatAssignmentStrategy.selectSeats(tempBookingId, layoutCache, tempBooking.bookedSeatIndexes.size, seatIndex)
       auditoriumDAO.updateSeatLayoutCache(auditoriumId, selectedSeat, tempBooking.bookedSeatIndexes, BookingUtil.getBookingIdCode(tempBookingId))
       tempBooking.bookedSeatIndexes = selectedSeat
       tempBooking
-    } finally {
-      lock.release()
-    }
+    })
   }
 
   def confirmSeats(tempBookingId: String): Unit = {
-    val tempBooking: Booking = findTempBooking(tempBookingId).getOrElse(throw new RuntimeException(s"No temp-booking found for booking id: ${tempBookingId}"))
-    val auditoriumId = tempBooking.show.auditoriumId
-    val lock = auditoriumDAO.getOrCreateLock(auditoriumId)
+    withAuditoriumLock(tempBookingId, tempBooking => {
+      bookingDAO.confirmBooking(bookingId = tempBookingId)
+      auditoriumDAO.allocateAuditoriumSeats(auditoriumId = tempBooking.show.auditoriumId, seatIndexes = tempBooking.bookedSeatIndexes)
+    })
+  }
+
+  def findBooking(bookingId: String): Option[Booking] = bookingDAO.findById(bookingId)
+
+  private def findTempBooking(bookingId: String): Option[Booking] = bookingDAO.findTempBookingById(bookingId)
+
+  private def withAuditoriumLock[T](tempBookingId: String, f: Booking => T): T = {
+    val booking: Booking = findTempBooking(tempBookingId).getOrElse(throw new RuntimeException(s"No temp-booking found for booking id: ${tempBookingId}"))
+    val auditoriumId = booking.show.auditoriumId
+    val lock = auditoriumDAO.getOrCreateLock(auditoriumId = auditoriumId)
     lock.acquire()
     try {
-      bookingDAO.confirmBooking(bookingId = tempBookingId)
-      auditoriumDAO.allocateAuditoriumSeats(auditoriumId = auditoriumId, seatIndexes = tempBooking.bookedSeatIndexes)
+      f(booking)
     } finally {
       lock.release()
     }
   }
-
-  private def findTempBooking(bookingId: String): Option[Booking] = bookingDAO.findTempBookingById(bookingId)
-
-  def findBooking(bookingId: String): Option[Booking] = bookingDAO.findById(bookingId)
 
 }
