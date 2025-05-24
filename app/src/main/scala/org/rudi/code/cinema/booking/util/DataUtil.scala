@@ -1,12 +1,12 @@
-package org.rudi.code.cinema.booking.state
+package org.rudi.code.cinema.booking.util
 
 import org.rudi.code.cinema.booking.constant.DataKey
 
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
-trait State {
-  def handle(): Map[DataKey, Any]
+object DataUtil {
+
 
   def getAsType[T: ClassTag](key: DataKey, map: mutable.Map[DataKey, Any]): Option[T] = {
     map.get(key) match {
@@ -14,5 +14,4 @@ trait State {
       case _ => None
     }
   }
-
 }

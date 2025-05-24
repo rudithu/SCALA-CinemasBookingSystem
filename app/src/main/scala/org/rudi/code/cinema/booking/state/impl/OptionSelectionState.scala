@@ -1,16 +1,23 @@
 package org.rudi.code.cinema.booking.state.impl
 
+import org.rudi.code.cinema.booking.constant.DataKey.SHOW_ID
 import org.rudi.code.cinema.booking.constant.{AppConst, DataKey}
 import org.rudi.code.cinema.booking.state.State
 import org.rudi.code.cinema.booking.service.ShowService
+
+import scala.collection.mutable
 import scala.io.StdIn.readLine
 
-class OptionSelectionState(showService: ShowService, sessionData: Map[DataKey, Any]) extends State {
+class OptionSelectionState(showService: ShowService, sessionData: mutable.Map[DataKey, Any]) extends State {
   private val REGEX: String = "^([1-3]{1})$"
   private val pattern = REGEX.r
 
   private def prepShowData(): String = {
-    val showId: Option[String] = DataKey.SHOW_ID.getValue(sessionData)
+
+
+
+
+    val showId: Option[String] = getAsType[String](DataKey.SHOW_ID, sessionData)
     showId match {
       case Some(value) =>
         showService.getShow(value) match {

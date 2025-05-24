@@ -6,8 +6,9 @@ import org.rudi.code.cinema.booking.service.ShowService
 import org.rudi.code.cinema.booking.state.State
 
 import scala.io.StdIn.readLine
+import scala.collection.mutable
 
-class InitialSetupState(showService: ShowService) extends State {
+class InitialSetupState(showService: ShowService, sessionData: mutable.Map[DataKey, Any]) extends State {
 
   private val REGEX = "^(.*)\\s+(\\d+)\\s+(\\d+)\\s*$"
   private val pattern = REGEX.r
@@ -21,7 +22,7 @@ class InitialSetupState(showService: ShowService) extends State {
 
     while (!validated) {
       println("Please define movie title and seating map in [Title] [Row] [SeatsPerRow] format:")
-      println(AppConst.INPUT_PROMPT)
+      print(AppConst.INPUT_PROMPT)
       input = readLine()
       input match {
         case pattern(t, r, s) =>
@@ -35,6 +36,7 @@ class InitialSetupState(showService: ShowService) extends State {
     }
 
     val showId = showService.createShow(title, rows.toInt, seatsPerRow.toInt)
+    sessionData.put(DataKey.SHOW_ID, showId)
     Map(DataKey.SHOW_ID -> showId)
   }
 
@@ -43,6 +45,6 @@ class InitialSetupState(showService: ShowService) extends State {
     val cols = colStr.toInt
 
     rows >= ConfigConstant.MIN_ROW && rows <= ConfigConstant.MAX_ROW
-    && cols >= ConfigConstant.MAX_SEAT_PER_ROW && cols <= ConfigConstant.MIN_SEAT_PER_ROW
+    && cols >= ConfigConstant.MIN_SEAT_PER_ROW && cols <= ConfigConstant.MAX_SEAT_PER_ROW
   }
 }

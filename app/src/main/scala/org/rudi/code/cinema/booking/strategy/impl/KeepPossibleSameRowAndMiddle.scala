@@ -43,26 +43,36 @@ class KeepPossibleSameRowAndMiddle extends SeatAssignmentStrategy {
 
     var seatToAcquire = requiredSeats
 
-    for (index <- 0 until row if seatToAcquire > 0) {
-      val rowIndex = (index + startingRow) % row
-      val seatRangeList: mutable.ListBuffer[Array[Int]] = seatRangesRowMap.getOrElse(rowIndex, prepSeatRanges(seatLayout(rowIndex), BookingUtil.getBookingIdCode(bookingId)))
-      val acquiredSeatRange = suggestRowSeats(seatRanges = seatRangeList, requiredSeats = seatToAcquire, totalCol = col)
+    (0 until row)
+      .iterator
+      .takeWhile(_ => seatToAcquire > 0)
+      .foreach(index => {
 
-      acquiredSeatRange.foreach(asr => {
-        result.addAll(getSeatIndex(rowIndex, mutable.ListBuffer(asr)))
-        seatRangesRowMap.put(rowIndex, mergeAvailableSeatMap(seatRangeList, asr))
-        seatToAcquire -= (asr(1) - asr(0) + 1)
+        val rowIndex = (index + startingRow) % row
+        val seatRangeList: mutable.ListBuffer[Array[Int]] = seatRangesRowMap.getOrElse(rowIndex, prepSeatRanges(seatLayout(rowIndex), BookingUtil.getBookingIdCode(bookingId)))
+        val acquiredSeatRange = suggestRowSeats(seatRanges = seatRangeList, requiredSeats = seatToAcquire, totalCol = col)
+
+        acquiredSeatRange.foreach(asr => {
+          result.addAll(getSeatIndex(rowIndex, mutable.ListBuffer(asr)))
+          seatRangesRowMap.put(rowIndex, mergeAvailableSeatMap(seatRangeList, asr))
+          seatToAcquire -= (asr(1) - asr(0) + 1)
+        })
+
       })
-    }
 
-    for (index <- 0 until row if seatToAcquire > 0) {
-      val rowIndex = (index + startingRow) % row
-      val seatRangeList: mutable.ListBuffer[Array[Int]] = seatRangesRowMap.getOrElse(rowIndex, prepSeatRanges(seatLayout(rowIndex), BookingUtil.getBookingIdCode(bookingId)))
-      val fillAnySeatRangesResult = fillInAnySeats(seatRangeList, seatToAcquire, col)
+    (0 until row)
+      .iterator
+      .takeWhile(_ => seatToAcquire > 0)
+      .foreach(index => {
 
-      seatToAcquire -= fillAnySeatRangesResult.map(s => s(1) - s(0)).sum
-      result.addAll(getSeatIndex(rowIndex, fillAnySeatRangesResult))
-    }
+        val rowIndex = (index + startingRow) % row
+        val seatRangeList: mutable.ListBuffer[Array[Int]] = seatRangesRowMap.getOrElse(rowIndex, prepSeatRanges(seatLayout(rowIndex), BookingUtil.getBookingIdCode(bookingId)))
+        val fillAnySeatRangesResult = fillInAnySeats(seatRangeList, seatToAcquire, col)
+
+        seatToAcquire -= fillAnySeatRangesResult.map(s => s(1) - s(0)).sum
+        result.addAll(getSeatIndex(rowIndex, fillAnySeatRangesResult))
+
+      })
 
     result
   }
@@ -134,13 +144,17 @@ class KeepPossibleSameRowAndMiddle extends SeatAssignmentStrategy {
   private def selectRowSeats(seatRanges: mutable.ListBuffer[Array[Int]], requiredSeats: Int, selectedCol: Int): mutable.ListBuffer[Array[Int]] = {
     val result: mutable.ListBuffer[Array[Int]] = mutable.ListBuffer.empty
     var seatToAcquire = requiredSeats
-    for (seatRange <- seatRanges if seatToAcquire > 0) {
+
+    val iter = seatRanges.iterator
+    while (iter.hasNext && seatToAcquire > 0) {
+      val seatRange = iter.next()
       if (seatRange(1) >= selectedCol) {
         val start = Math.max(selectedCol, seatRange(0))
         val end = Math.min(start + seatToAcquire - 1, seatRange(1))
         result.addOne(Array(start, end))
         seatToAcquire -= (end - start + 1)
       }
+
     }
     result
   }

@@ -2,9 +2,6 @@ package org.rudi.code.cinema.booking.util
 
 import org.rudi.code.cinema.booking.constant.{AppConst, SeatStatus}
 
-import java.util
-import java.util.List
-import java.util.regex.{Matcher, Pattern}
 import scala.collection.mutable
 object SeatUtil {
   
@@ -33,7 +30,7 @@ object SeatUtil {
   def getSeatIndex(row: Int, colRanges: mutable.ListBuffer[Array[Int]]): mutable.ListBuffer[Array[Int]] = {
     val result: mutable.ListBuffer[Array[Int]] = mutable.ListBuffer.empty
     for (cols <- colRanges) {
-      for (col <- 0 to cols(1)) {
+      for (col <- cols(0) to cols(1)) {
         result.addOne(Array(row, col))
       }
     }
@@ -72,8 +69,8 @@ object SeatUtil {
 
   def getSeatIndexFromString(seatNumber: String): Array[Int] =
     seatNumber match {
-      case AppConst.SEAT_INDEX_PATTERN.r(r, c) => Array(convertRowIndex(r), c.toInt)
-      case _ => throw new RuntimeException(s"Unexpected seat number ${seatNumber}")
+      case AppConst.SEAT_INDEX_PATTERN.r(r, c) => Array(convertRowIndex(r), c.toInt-1)
+      case _ => throw new RuntimeException(s"Unexpected seat number $seatNumber")
     }
   
 }

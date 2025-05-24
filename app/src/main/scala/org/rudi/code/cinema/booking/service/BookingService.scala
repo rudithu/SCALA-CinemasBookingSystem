@@ -37,6 +37,7 @@ class BookingService(seatAssignmentStrategy: SeatAssignmentStrategy, showDAO: Sh
       val layoutCache = auditoriumDAO.getSeatLayoutCache(auditoriumId).getOrElse(throw new RuntimeException(s"No seat layout found for auditorium id: ${auditoriumId}"))
       val seatIndex = seatUtil.getSeatIndexFromString(seatStartLoc)
       val selectedSeat = seatAssignmentStrategy.selectSeats(tempBookingId, layoutCache, tempBooking.bookedSeatIndexes.size, seatIndex)
+      auditoriumDAO.updateSeatLayoutCache(auditoriumId, selectedSeat, tempBooking.bookedSeatIndexes, BookingUtil.getBookingIdCode(tempBookingId))
       tempBooking.bookedSeatIndexes = selectedSeat
       tempBooking
     } finally {
@@ -59,6 +60,6 @@ class BookingService(seatAssignmentStrategy: SeatAssignmentStrategy, showDAO: Sh
 
   private def findTempBooking(bookingId: String): Option[Booking] = bookingDAO.findTempBookingById(bookingId)
 
-  private def findBooking(bookingId: String): Option[Booking] = bookingDAO.findById(bookingId)
+  def findBooking(bookingId: String): Option[Booking] = bookingDAO.findById(bookingId)
 
 }
