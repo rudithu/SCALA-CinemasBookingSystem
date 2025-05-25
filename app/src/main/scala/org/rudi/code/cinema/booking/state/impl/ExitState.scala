@@ -5,8 +5,7 @@ import org.rudi.code.cinema.booking.state.State
 
 class ExitState extends State {
   override def handle(): Map[DataKey, Any] = {
-    println("Thank you for using GIC Cinemas system. Bye!\n")
+    println("\nThank you for using GIC Cinemas system. Bye!")
     Map.empty
   }
-
 }

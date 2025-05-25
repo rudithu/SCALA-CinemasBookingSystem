@@ -36,14 +36,14 @@ class BookingState(bookingService: BookingService, showService: ShowService, lay
       case Some(showId) =>
         //default seat reservation
         var booking: Booking = bookingService.createTempBooking(showId, requiredSeats)
-        println(s"\nSuccessfully reserved ${booking.bookedSeatIndexes.size} ${booking.show.movie.title} ticket${if (booking.bookedSeatIndexes.size > 1) "s" else ""}.")
+        print(s"\nSuccessfully reserved ${booking.bookedSeatIndexes.size} ${booking.show.movie.title} ticket${if (booking.bookedSeatIndexes.size > 1) "s" else ""}.")
 
         //change seat
         booking = updateBooking(booking)
 
         //confirm booking
         bookingService.confirmSeats(booking.id)
-        println(s"\nBooking id: ${booking.id} confirmed.\n")
+        println(s"\nBooking id: ${booking.id} confirmed.")
 
         Map(DataKey.BOOKING_ID -> booking.id)
     }
@@ -76,11 +76,11 @@ class BookingState(bookingService: BookingService, showService: ShowService, lay
   }
 
   private def showSeatLayout(booking: Booking, seatsLayout: Array[Array[Int]]): Unit = {
-    println(s"Booking id: ${booking.id}")
+    println(s"\nBooking id: ${booking.id}")
     println(s"Selected seat${if (booking.bookedSeatIndexes.size > 1) "s" else ""}:")
     println()
     val display = layoutUtil.generateLayout(seatsLayout, booking.bookedSeatIndexes)
-    display.foreach(d => println(d))
+    display.foreach(println)
   }
 
   private def validateSeatSelection(input: String, maxRow: Int, maxCol: Int): Boolean = {
@@ -104,7 +104,7 @@ class BookingState(bookingService: BookingService, showService: ShowService, lay
   private def getSeatAvailability: Int = {
     @tailrec
     def prompt: Int = {
-      println("Enter number of tickets to book, or enter blank to go back to main menu:")
+      println("\nEnter number of tickets to book, or enter blank to go back to main menu:")
       print(AppConst.INPUT_PROMPT)
       val input = readLine().trim
       if (input.equalsIgnoreCase("")) {

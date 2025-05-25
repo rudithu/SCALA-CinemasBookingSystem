@@ -34,14 +34,13 @@ class OptionSelectionState(showService: ShowService, sessionData: mutable.Map[Da
     var input: String = ""
     var selectedOption: Option[Int] = None
     while (selectedOption.isEmpty) {
-      println("Welcome to SCALA Cinemas")
+      println("\nWelcome to SCALA Cinemas")
       println(s"[1] Book ticket for ${prepShowData()}")
       println("[2] Check bookings")
       println("[3] Exit")
       println("Please enter your selection:")
       print(AppConst.INPUT_PROMPT)
       input = readLine().trim
-      println()
 
       selectedOption = input match {
         case pattern(option) => Some(option.toInt)

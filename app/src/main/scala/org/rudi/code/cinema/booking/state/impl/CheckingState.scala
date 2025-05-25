@@ -32,9 +32,7 @@ class CheckingState(bookingService: BookingService, showService: ShowService, la
                 println("Selected seats:\n")
                 val seatLayout = showService.getSeatsLayout(booking.show.id)
                 val layout = layoutUtil.generateLayout(seatLayout, booking.bookedSeatIndexes)
-                for(r <- layout) {
-                  println(r)
-                }
+                layout.foreach(println)
               case _ =>
                 println(s"Unable to find booking with ID: $input.")
             }
